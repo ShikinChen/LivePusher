@@ -1,16 +1,20 @@
 package me.shiki.livepusher.camera
 
+import android.content.Context
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
+import android.opengl.Matrix
 import android.util.Log
 import me.shiki.livepusher.egl.EGLRender
 import me.shiki.livepusher.egl.ShaderUtil
+import me.shiki.livepusher.ext.getScreenHeight
+import me.shiki.livepusher.ext.getScreenWidth
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
-
-class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
+//TODO 矩阵适配view大小
+class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailableListener {
 
     private val vertexData = floatArrayOf(
         -1f, -1f,
@@ -43,9 +47,10 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         attribute vec4 v_Position;
         attribute vec2 f_Position;
         varying vec2 ft_Position;
+        uniform mat4 u_Matrix;
         void main() {
             ft_Position = f_Position;
-            gl_Position = v_Position;
+            gl_Position = v_Position * u_Matrix;
         }
   """
 
@@ -58,15 +63,13 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
             gl_FragColor=texture2D(sTexture, ft_Position);
         }
   """
-
-    init {
-        vertexBuffer.position(0)
-        fragmentBuffer.position(0)
-    }
+    private val matrix = FloatArray(16)
 
     private var program = 0
     private var vPosition = 0
     private var fPosition = 0
+
+    private var uMatrix = 0
 
     private var vboId = 0
     private var fboId = 0
@@ -77,8 +80,21 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     private var surfaceTexture: SurfaceTexture? = null
     var onSurfaceCreateListener: ((surfaceTexture: SurfaceTexture?) -> Unit)? = null
 
+    private var screenWidth = 0
+    private var screenHeight = 0
+
+    private var width = 0
+    private var height = 0
+
     private val cameraFboRender: CameraFboRender by lazy {
         CameraFboRender()
+    }
+
+    init {
+        vertexBuffer.position(0)
+        fragmentBuffer.position(0)
+        screenWidth = context.getScreenWidth()
+        screenHeight = context.getScreenHeight()
     }
 
     override fun onSurfaceCreated() {
@@ -86,6 +102,8 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         program = ShaderUtil.createProgram(vertexSource, fragmentSource)
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
+
+        fPosition = GLES20.glGetUniformLocation(program, "u_Matrix")
 
         //vbo
         val vbos = IntArray(1)
@@ -124,8 +142,8 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
             GLES20.GL_TEXTURE_2D,
             0,
             GLES20.GL_RGBA,
-            720,
-            1280,
+            screenWidth,
+            screenHeight,
             0,
             GLES20.GL_RGBA,
             GLES20.GL_UNSIGNED_BYTE,
@@ -164,9 +182,19 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }
 
+    fun resetMatrix() {
+        Matrix.setIdentityM(matrix, 0)
+    }
+
+    fun setAngle(angle: Float, x: Float, y: Float, z: Float) {
+        Matrix.rotateM(matrix, 0, angle, x, y, z)
+    }
+
     override fun onSurfaceChanged(width: Int, height: Int) {
-        cameraFboRender.onChange(width, height)
-        GLES20.glViewport(0, 0, width, height)
+        // cameraFboRender.onChange(width, height)
+        // GLES20.glViewport(0, 0, width, height)
+        this.height = height
+        this.width = width
     }
 
     override fun onDrawFrame() {
@@ -175,6 +203,10 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         GLES20.glClearColor(1f, 1f, 1f, 1f)
 
         GLES20.glUseProgram(program)
+        GLES20.glViewport(0, 0, screenWidth, screenHeight)
+        GLES20.glUniformMatrix4fv(uMatrix, 1, false, matrix, 0)
+
+
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
 
@@ -196,6 +228,7 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
+        cameraFboRender.onChange(width, height)
         cameraFboRender.onDraw(fboTextureId)
     }
 

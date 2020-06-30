@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
+import android.hardware.Camera
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
@@ -19,9 +20,11 @@ import android.util.Log
 import android.util.Size
 import android.view.Surface
 import androidx.core.app.ActivityCompat
+import me.shiki.livepusher.ext.getScreenHeight
+import me.shiki.livepusher.ext.getScreenWidth
 import java.lang.ref.WeakReference
 
-class LivePusherCamera(val context: Context) {
+class LivePusherCamera(private val context: Context) {
 
     private var surfaceTexture: SurfaceTexture? = null
     private var currCameraId: Int = -1
@@ -53,15 +56,32 @@ class LivePusherCamera(val context: Context) {
         StateCallback(WeakReference(this))
     }
 
+    var onStartPreviewListener: (() -> Unit)? = null
+
+    private var width = 0
+    private var height = 0
+
+    init {
+        width = context.getScreenWidth()
+        height = context.getScreenHeight()
+    }
+
     fun initCamera(surfaceTexture: SurfaceTexture?, cameraId: Int) {
-        this.surfaceTexture = surfaceTexture
-        cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-        cameraCharacteristics = cameraManager?.getCameraCharacteristics(cameraId.toString())
-        val map: StreamConfigurationMap? =
-            cameraCharacteristics?.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-        previewSize = map?.getOutputSizes(SurfaceTexture::class.java)?.get(0)
-        pictureSize = map?.getOutputSizes(ImageFormat.JPEG)?.get(0)
-        openCamera(cameraId)
+        try {
+            this.surfaceTexture = surfaceTexture
+            cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            cameraCharacteristics = cameraManager?.getCameraCharacteristics(cameraId.toString())
+            val map: StreamConfigurationMap? =
+                cameraCharacteristics?.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
+            if (map != null) {
+                previewSize = getFitSize(map.getOutputSizes(SurfaceTexture::class.java))
+                pictureSize = getFitSize(map.getOutputSizes(ImageFormat.JPEG))
+            }
+            openCamera(cameraId)
+        } catch (e: Exception) {
+            // Log.e(this::javaClass.name, e.message)
+            e.printStackTrace()
+        }
     }
 
     /**
@@ -103,7 +123,8 @@ class LivePusherCamera(val context: Context) {
                 }, backgroundHandler
             )
         } catch (e: Exception) {
-            Log.e(this::javaClass.name, e.message)
+            e.printStackTrace()
+            // Log.e(this::javaClass.name, e.message)
         }
     }
 
@@ -111,6 +132,7 @@ class LivePusherCamera(val context: Context) {
         if (captureSession != null && previewRequest != null) {
             try {
                 captureSession?.setRepeatingRequest(previewRequest!!, null, backgroundHandler)
+                onStartPreviewListener?.invoke()
             } catch (e: CameraAccessException) {
                 e.printStackTrace()
             }
@@ -124,6 +146,8 @@ class LivePusherCamera(val context: Context) {
         cameraDevice = null
         imageReader?.close()
         imageReader = null
+        previewSurface?.release()
+        previewSurface = null
         stopBackgroundThread()
     }
 
@@ -152,6 +176,20 @@ class LivePusherCamera(val context: Context) {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
+    }
+
+    private fun getFitSize(sizes: Array<Size>): Size? {
+        if (width < height) {
+            val t = height
+            height = width
+            width = t
+        }
+        for (size in sizes) {
+            if (1.0f * size.width / size.height == 1.0f * width / height) {
+                return size
+            }
+        }
+        return sizes[0]
     }
 
     class StateCallback(private val cameraWeakReference: WeakReference<LivePusherCamera>) :
