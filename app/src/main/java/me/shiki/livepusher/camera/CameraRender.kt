@@ -75,9 +75,14 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     private var cameraTextureId = 0
 
     private var surfaceTexture: SurfaceTexture? = null
-    private val onSurfaceCreateListener: ((surfaceTexture: SurfaceTexture?) -> Unit)? = null
+    var onSurfaceCreateListener: ((surfaceTexture: SurfaceTexture?) -> Unit)? = null
+
+    private val cameraFboRender: CameraFboRender by lazy {
+        CameraFboRender()
+    }
 
     override fun onSurfaceCreated() {
+        cameraFboRender.onCreate()
         program = ShaderUtil.createProgram(vertexSource, fragmentSource)
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
@@ -136,7 +141,7 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         if (GLES20.glCheckFramebufferStatus(GLES20.GL_FRAMEBUFFER) != GLES20.GL_FRAMEBUFFER_COMPLETE) {
             Log.e(this::class.java.name, "fbo wrong")
         } else {
-            Log.e(this::class.java.name, "fbo success")
+            Log.d(this::class.java.name, "fbo success")
         }
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
@@ -160,9 +165,38 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     }
 
     override fun onSurfaceChanged(width: Int, height: Int) {
+        cameraFboRender.onChange(width, height)
+        GLES20.glViewport(0, 0, width, height)
     }
 
     override fun onDrawFrame() {
+        surfaceTexture?.updateTexImage()
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+        GLES20.glClearColor(1f, 1f, 1f, 1f)
+
+        GLES20.glUseProgram(program)
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, fboId)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
+
+        GLES20.glEnableVertexAttribArray(vPosition)
+        GLES20.glVertexAttribPointer(
+            vPosition, 2, GLES20.GL_FLOAT, false, 8,
+            0
+        )
+
+        GLES20.glEnableVertexAttribArray(fPosition)
+        GLES20.glVertexAttribPointer(
+            fPosition, 2, GLES20.GL_FLOAT, false, 8,
+            vertexData.size * 4
+        )
+
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
+
+        GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+
+        cameraFboRender.onDraw(fboTextureId)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {

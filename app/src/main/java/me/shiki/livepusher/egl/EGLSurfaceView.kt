@@ -28,11 +28,11 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
     private var eglContext: EGLContext? = null
 
     private var eglThread: EGLThread? = null
-    var eglRender: EGLRender? = null
+    var render: EGLRender? = null
 
     var renderMode = RenderMode.CONTINUOUSLY
         set(value) {
-            if (eglRender == null) {
+            if (render == null) {
                 throw RuntimeException("must set render before")
             }
             field = value
@@ -135,7 +135,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         }
 
         private fun onCreate() {
-            eglSurfaceViewWeakReference?.get()?.eglRender?.let {
+            eglSurfaceViewWeakReference?.get()?.render?.let {
                 if (isCreate) {
                     isCreate = false
                     it.onSurfaceCreated()
@@ -144,7 +144,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         }
 
         private fun onChange(width: Int, height: Int) {
-            eglSurfaceViewWeakReference?.get()?.eglRender?.let {
+            eglSurfaceViewWeakReference?.get()?.render?.let {
                 if (isChange) {
                     isChange = false
                     it.onSurfaceChanged(width, height)
@@ -153,7 +153,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         }
 
         private fun onDraw() {
-            with(eglSurfaceViewWeakReference?.get()?.eglRender) {
+            with(eglSurfaceViewWeakReference?.get()?.render) {
                 if (this != null && eglHelper != null) {
                     onDrawFrame()
                     if (!isStart) {

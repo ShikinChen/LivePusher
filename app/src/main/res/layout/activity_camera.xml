@@ -6,18 +6,11 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
-    <LinearLayout
-        android:id="@+id/ll_btns"
+    <me.shiki.livepusher.camera.CameraView
+        android:id="@+id/cv"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <Button
-            android:id="@+id/btn_preview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="摄像头预览" />
-    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
