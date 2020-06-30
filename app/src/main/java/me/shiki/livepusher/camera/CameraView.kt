@@ -2,6 +2,7 @@ package me.shiki.livepusher.camera
 
 import android.content.Context
 import android.hardware.Camera
+import android.hardware.camera2.CameraCharacteristics
 import android.util.AttributeSet
 import me.shiki.livepusher.egl.EGLSurfaceView
 
@@ -13,10 +14,10 @@ class CameraView @JvmOverloads constructor(
         CameraRender()
     }
     private val camera: LivePusherCamera by lazy {
-        LivePusherCamera()
+        LivePusherCamera(context.applicationContext)
     }
 
-    var cameraId: Int = Camera.CameraInfo.CAMERA_FACING_BACK
+    private var cameraId: Int = CameraCharacteristics.LENS_FACING_FRONT
 
     init {
         render = cameraRender
@@ -26,6 +27,6 @@ class CameraView @JvmOverloads constructor(
     }
 
     fun onDestroy() {
-        camera.stopPreview()
+        camera.releaseCamera()
     }
 }
