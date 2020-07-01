@@ -38,10 +38,12 @@ class LivePusherCamera(private val context: Context) {
     private var cameraCharacteristics: CameraCharacteristics? = null
 
     //预览尺寸
-    private var previewSize: Size? = null
+    var previewSize: Size? = null
+        private set
 
     //输出图片尺寸
-    private var pictureSize: Size? = null
+    var pictureSize: Size? = null
+        private set
 
     private var previewRequestBuilder: CaptureRequest.Builder? = null
 

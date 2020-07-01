@@ -17,7 +17,8 @@ class MainActivity : AppCompatActivity() {
         btn_preview.setOnClickListener {
             startActivity(Intent(this, CameraActivity::class.java))
         }
+        btn_record.setOnClickListener {
+            startActivity(Intent(this, VideoActivity::class.java))
+        }
     }
-
-
 }

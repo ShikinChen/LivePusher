@@ -5,21 +5,12 @@ import android.util.AttributeSet
 import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import me.shiki.commlib.constant.Consts
+import me.shiki.livepusher.RenderMode
 import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReentrantLock
 import javax.microedition.khronos.egl.EGLContext
 import kotlin.concurrent.withLock
-
-inline class RenderTypeInline(private val value: Int) {
-    override fun toString(): String {
-        return value.toString()
-    }
-}
-
-object RenderMode {
-    val WHEN_DIRTY = RenderTypeInline(0)
-    val CONTINUOUSLY = RenderTypeInline(1)
-}
 
 abstract class EGLSurfaceView @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -31,12 +22,6 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
     var render: EGLRender? = null
 
     var renderMode = RenderMode.CONTINUOUSLY
-        set(value) {
-            if (render == null) {
-                throw RuntimeException("must set render before")
-            }
-            field = value
-        }
 
     init {
         holder.addCallback(this)
@@ -82,7 +67,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         eglContext = null
     }
 
-    class EGLThread(var eglSurfaceViewWeakReference: WeakReference<EGLSurfaceView>?) : Thread() {
+    class EGLThread(private var eglSurfaceViewWeakReference: WeakReference<EGLSurfaceView>?) : Thread() {
         private var eglHelper: EGLHelper? = null
         private val lock by lazy {
             ReentrantLock()
@@ -97,11 +82,6 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
 
         var width = 0
         var height = 0
-
-        companion object {
-            @JvmStatic
-            private val FPS_TIME = 1000L / 60
-        }
 
         override fun run() {
             super.run()
@@ -122,7 +102,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
                                 condition.await()
                             }
                         } else {
-                            sleep(FPS_TIME)
+                            sleep(Consts.FPS_TIME)
                         }
                     }
                 }
@@ -171,7 +151,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         }
 
         fun onDestroy() {
-            isExit = false
+            isExit = true
             requestRender()
         }
 

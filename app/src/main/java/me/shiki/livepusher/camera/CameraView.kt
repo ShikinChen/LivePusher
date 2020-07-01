@@ -4,6 +4,7 @@ import android.content.Context
 import android.hardware.camera2.CameraCharacteristics
 import android.util.AttributeSet
 import android.util.Log
+import android.util.Size
 import android.view.Surface
 import me.shiki.livepusher.egl.EGLSurfaceView
 import me.shiki.livepusher.ext.getRotation
@@ -23,10 +24,14 @@ class CameraView @JvmOverloads constructor(
     var cameraId: Int = CameraCharacteristics.LENS_FACING_FRONT
         private set
 
+    var textureId = -1
+        private set
+
     init {
         render = cameraRender
-        cameraRender.onSurfaceCreateListener = {
-            camera.initCamera(it, cameraId)
+        cameraRender.onSurfaceCreateListener = { surfaceTexture, fboTextureId ->
+            camera.initCamera(surfaceTexture, cameraId)
+            textureId = fboTextureId
         }
         camera.onStartPreviewListener = {
             prewviewAngle()
@@ -44,6 +49,14 @@ class CameraView @JvmOverloads constructor(
 
     fun onDestroy() {
         camera.releaseCamera()
+    }
+
+    fun getPreviewSize(): Size? {
+        return camera.previewSize
+    }
+
+    fun getPictureSize(): Size? {
+        return camera.pictureSize
     }
 
     fun prewviewAngle() {

@@ -13,6 +13,7 @@ import me.shiki.livepusher.ext.getScreenWidth
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
+
 //TODO 矩阵适配view大小
 class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailableListener {
 
@@ -74,11 +75,12 @@ class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailabl
     private var vboId = 0
     private var fboId = 0
 
-    private var fboTextureId = 0
-    private var cameraTextureId = 0
+    private var fboTextureId = -1
+
+    private var cameraTextureId = -1
 
     private var surfaceTexture: SurfaceTexture? = null
-    var onSurfaceCreateListener: ((surfaceTexture: SurfaceTexture?) -> Unit)? = null
+    var onSurfaceCreateListener: ((surfaceTexture: SurfaceTexture?, textureId: Int) -> Unit)? = null
 
     private var screenWidth = 0
     private var screenHeight = 0
@@ -103,7 +105,7 @@ class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailabl
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
 
-        fPosition = GLES20.glGetUniformLocation(program, "u_Matrix")
+        uMatrix = GLES20.glGetUniformLocation(program, "u_Matrix")
 
         //vbo
         val vbos = IntArray(1)
@@ -177,7 +179,7 @@ class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailabl
         surfaceTexture = SurfaceTexture(cameraTextureId)
         surfaceTexture?.setOnFrameAvailableListener(this)
 
-        onSurfaceCreateListener?.invoke(surfaceTexture)
+        onSurfaceCreateListener?.invoke(surfaceTexture, fboTextureId)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
     }

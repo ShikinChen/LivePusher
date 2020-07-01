@@ -60,7 +60,7 @@ class EGLHelper {
             EGL14.EGL_CONTEXT_CLIENT_VERSION, 2,
             EGL10.EGL_NONE
         )
-        eglContext = egl?.eglCreateContext(eglDisplay, configs[0], eglContext ?: EGL10.EGL_NO_CONTEXT, attribList)
+        eglContext = egl?.eglCreateContext(eglDisplay, configs[0], context ?: EGL10.EGL_NO_CONTEXT, attribList)
 
         //创建渲染的Surface
         eglSurface = egl?.eglCreateWindowSurface(eglDisplay, configs[0], surface, null)
@@ -82,8 +82,6 @@ class EGLHelper {
             eglSurface = null
 
             it.eglDestroyContext(eglDisplay, eglContext)
-            eglDisplay = null
-
             it.eglTerminate(eglDisplay)
             eglDisplay = null
             egl = null
