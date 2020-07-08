@@ -171,7 +171,7 @@ class LivePusherCamera(private val context: Context) {
     private fun stopBackgroundThread() {
         backgroundThread?.quitSafely()
         try {
-            backgroundThread?.join()
+            backgroundThread?.quit()
             backgroundHandler?.removeCallbacksAndMessages(null)
             backgroundThread = null
             backgroundHandler = null

@@ -9,6 +9,7 @@ import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.activity_camera.*
 import kotlinx.android.synthetic.main.activity_main.*
 
+//TODO 后台返回黑屏
 class CameraActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {

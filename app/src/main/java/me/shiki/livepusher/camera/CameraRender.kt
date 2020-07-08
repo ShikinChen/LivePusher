@@ -1,6 +1,8 @@
 package me.shiki.livepusher.camera
 
 import android.content.Context
+import android.content.res.Resources
+import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
@@ -8,6 +10,7 @@ import android.opengl.Matrix
 import android.util.Log
 import me.shiki.livepusher.egl.EGLRender
 import me.shiki.livepusher.egl.ShaderUtil
+import me.shiki.livepusher.ext.dpToPx
 import me.shiki.livepusher.ext.getScreenHeight
 import me.shiki.livepusher.ext.getScreenWidth
 import java.nio.ByteBuffer
@@ -15,7 +18,7 @@ import java.nio.ByteOrder
 import java.nio.FloatBuffer
 
 //TODO 矩阵适配view大小
-class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailableListener {
+class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
 
     private val vertexData = floatArrayOf(
         -1f, -1f,
@@ -95,12 +98,12 @@ class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailabl
     init {
         vertexBuffer.position(0)
         fragmentBuffer.position(0)
-        screenWidth = context.getScreenWidth()
-        screenHeight = context.getScreenHeight()
+        screenWidth = Resources.getSystem().getScreenWidth()
+        screenHeight = Resources.getSystem().getScreenHeight()
     }
 
     override fun onSurfaceCreated() {
-        cameraFboRender.onCreate()
+        cameraFboRender.onSurfaceCreated()
         program = ShaderUtil.createProgram(vertexSource, fragmentSource)
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
@@ -230,7 +233,7 @@ class CameraRender(context: Context) : EGLRender, SurfaceTexture.OnFrameAvailabl
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
-        cameraFboRender.onChange(width, height)
+        cameraFboRender.onSurfaceChanged(width, height)
         cameraFboRender.onDraw(fboTextureId)
     }
 

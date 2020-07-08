@@ -15,7 +15,7 @@ class CameraView @JvmOverloads constructor(
 ) : EGLSurfaceView(context, attrs, defStyleAttr) {
 
     private val cameraRender: CameraRender by lazy {
-        CameraRender(context)
+        CameraRender()
     }
     private val camera: LivePusherCamera by lazy {
         LivePusherCamera(context.applicationContext)
