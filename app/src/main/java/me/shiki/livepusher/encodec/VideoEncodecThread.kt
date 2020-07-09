@@ -3,6 +3,7 @@ package me.shiki.livepusher.encodec
 import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
+import android.util.Log
 import java.lang.ref.WeakReference
 
 class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<BaseMediaEncodec>?) : Thread() {
@@ -20,7 +21,6 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
         pts = 0
         isExit = false
         val videoEncodec: MediaCodec? = mediaEncoderWeakReference?.get()?.videoEncodec
-        val videoFromat: MediaFormat? = mediaEncoderWeakReference?.get()?.videoFromat
         val videoBufferInfo: MediaCodec.BufferInfo? = mediaEncoderWeakReference?.get()?.videoBufferInfo
         val mediaMuxer: MediaMuxer? = mediaEncoderWeakReference?.get()?.mediaMuxer
         videoEncodec?.start()
@@ -64,9 +64,11 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
         }
         videoEncodec?.stop()
         videoEncodec?.release()
-        if (mediaEncoderWeakReference?.get()?.audioEncodecThread?.isExit != false) {
+        mediaEncoderWeakReference?.get()?.videoExit = true
+        if (mediaEncoderWeakReference?.get()?.audioExit != false) {
             mediaMuxer?.stop()
             mediaMuxer?.release()
+            Log.d(this::javaClass.name, "videoExit")
         }
     }
 

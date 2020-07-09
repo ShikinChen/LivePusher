@@ -2,6 +2,7 @@ package me.shiki.livepusher.encodec
 
 import android.media.MediaCodec
 import android.media.MediaMuxer
+import android.util.Log
 import java.lang.ref.WeakReference
 
 class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<BaseMediaEncodec>?) : Thread() {
@@ -43,6 +44,8 @@ class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
                             }
                             audioBufferInfo.presentationTimeUs = audioBufferInfo.presentationTimeUs - pts
 
+                            // Log.d(this::javaClass.name, "时间:${audioBufferInfo.presentationTimeUs / 1000000}")
+
                             val outputBuffer = audioEncodec?.getOutputBuffer(outputBufferIndex)
                             outputBuffer?.let {
                                 it.position(audioBufferInfo.offset)
@@ -59,9 +62,11 @@ class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
         }
         audioEncodec?.stop()
         audioEncodec?.release()
-        if (mediaEncoderWeakReference?.get()?.audioEncodecThread?.isExit != false) {
+        mediaEncoderWeakReference?.get()?.audioExit = true
+        if (mediaEncoderWeakReference?.get()?.videoExit != false) {
             mediaMuxer?.stop()
             mediaMuxer?.release()
+            Log.d(this::javaClass.name,"audioExit")
         }
     }
 

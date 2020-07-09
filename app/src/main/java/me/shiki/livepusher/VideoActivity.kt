@@ -6,12 +6,20 @@ import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
+import com.ywl5320.libmusic.WlMusic
+import com.ywl5320.listener.OnShowPcmDataListener
 import kotlinx.android.synthetic.main.activity_video.*
+import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
 
 class VideoActivity : AppCompatActivity() {
+
+    val music: WlMusic by lazy {
+        WlMusic.getInstance()
+    }
 
     var mediaEncodec: MediaEncodec? = null
 
@@ -29,27 +37,52 @@ class VideoActivity : AppCompatActivity() {
             }
             .start()
 
+        music.setCallBackPcmData(true)
+        music.setOnPreparedListener {
+            music.playCutAudio(10, 20)
+        }
+        music.setOnCompleteListener {
+            mediaEncodec?.stopRecord()
+            mediaEncodec = null
+            lifecycleScope.launch {
+                btn_record.text = "开始录制"
+            }
+        }
+
+        music.setOnShowPcmDataListener(object : OnShowPcmDataListener {
+            override fun onPcmInfo(samplerate: Int, bit: Int, channels: Int) {
+                mediaEncodec = MediaEncodec(this@VideoActivity, cv.textureId)
+                mediaEncodec?.initEncodec(
+                    cv.getEglContext(),
+                    "${Environment.getExternalStorageDirectory().absolutePath}/test.mp4",
+                    720,
+                    1280,
+                    samplerate,
+                    channels
+                )
+                mediaEncodec?.onMediaTime = {
+                    // Log.d(this::javaClass.name, "时间:${it}")
+                }
+                mediaEncodec?.startRecord()
+            }
+
+            override fun onPcmData(pcmdata: ByteArray?, size: Int, clock: Long) {
+                mediaEncodec?.putPCMData(pcmdata, size)
+            }
+        })
+
         btn_record.setOnClickListener {
             AndPermission.with(this)
                 .runtime()
                 .permission(Permission.Group.STORAGE)
                 .onGranted {
                     if (mediaEncodec == null) {
-                        mediaEncodec = MediaEncodec(this, cv.textureId)
-                        mediaEncodec?.initEncodec(
-                            cv.getEglContext(),
-                            "${Environment.getExternalStorageDirectory().absolutePath}/test.mp4",
-                            MediaFormat.MIMETYPE_VIDEO_AVC,
-                            720,
-                            1280
-                        )
-                        mediaEncodec?.onMediaTime = {
-                            Log.d(this::javaClass.name, "时间:${it}")
-                        }
-                        mediaEncodec?.startRecord()
+                        music.source = Environment.getExternalStorageDirectory().absolutePath + "/test.mp3"
+                        music.prePared()
                         btn_record.text = "录制中"
                     } else {
                         mediaEncodec?.stopRecord()
+                        music.stop()
                         mediaEncodec = null
                         btn_record.text = "开始录制"
                     }
