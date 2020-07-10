@@ -1,10 +1,13 @@
 package me.shiki.livepusher.egl
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.opengl.GLES20
+import android.opengl.GLUtils
 import java.nio.ByteBuffer
 
 /**
@@ -60,7 +63,7 @@ class ShaderUtil {
             textSize: Float,
             textColor: String = "#ff000000",
             bgColor: String = "#00000000",
-            padding: Int=0
+            padding: Int = 0
         ): Bitmap {
             val paint = Paint()
             paint.color = Color.parseColor(textColor)
@@ -98,6 +101,25 @@ class ShaderUtil {
                 GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, bitmap.width,
                 bitmap.height, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, bitmapBuffer
             )
+            return textureIds[0]
+        }
+
+        @JvmStatic
+        fun loadTexrute(srcImg: Int, context: Context): Int {
+            val textureIds = IntArray(1)
+            GLES20.glGenTextures(1, textureIds, 0)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureIds[0])
+
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR)
+            GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_LINEAR)
+
+            var bitmap = BitmapFactory.decodeResource(context.resources, srcImg)
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, bitmap, 0)
+            bitmap.recycle()
+            bitmap = null
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
             return textureIds[0]
         }
     }

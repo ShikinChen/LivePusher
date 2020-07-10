@@ -4,7 +4,7 @@ import android.content.Context
 import me.shiki.livepusher.RenderMode
 
 class MediaEncodec(context: Context, textureId: Int) : BaseMediaEncodec(context) {
-    private val encodecRender: EncodecRender by lazy {
+    val encodecRender: EncodecRender by lazy {
         EncodecRender(textureId)
     }
 

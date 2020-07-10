@@ -29,6 +29,8 @@
             android:name=".VideoActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppThemeFullScreen" />
+
+        <activity android:name=".ImgVideoActivity" />
     </application>
 
 </manifest>

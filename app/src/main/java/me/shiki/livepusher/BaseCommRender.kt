@@ -46,7 +46,6 @@ abstract class BaseCommRender : EGLRender {
     protected var vPosition = 0
     protected var fPosition = 0
 
-
     protected var vboId = 0
 
     protected val vertexSource: String = """
@@ -68,7 +67,7 @@ abstract class BaseCommRender : EGLRender {
         }
   """
 
-    protected var bitmap: Bitmap? = null
+    var bitmap: Bitmap? = null
     protected var bitmapTextureId: Int? = null
 
     init {
@@ -103,7 +102,6 @@ abstract class BaseCommRender : EGLRender {
 
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
-
 
         val vbos = IntArray(1)
         GLES20.glGenBuffers(1, vbos, 0)
@@ -158,7 +156,6 @@ abstract class BaseCommRender : EGLRender {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
     }
 
-
     protected fun drawBitmap() {
         //bitmap
         bitmapTextureId?.let {
@@ -177,6 +174,4 @@ abstract class BaseCommRender : EGLRender {
             GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         }
     }
-
-
 }

@@ -20,5 +20,9 @@ class MainActivity : AppCompatActivity() {
         btn_record.setOnClickListener {
             startActivity(Intent(this, VideoActivity::class.java))
         }
+
+        btn_img_video.setOnClickListener {
+            startActivity(Intent(this, ImgVideoActivity::class.java))
+        }
     }
 }

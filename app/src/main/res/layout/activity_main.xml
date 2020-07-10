@@ -25,6 +25,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="摄像头录制" />
+
+        <Button
+            android:id="@+id/btn_img_video"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="图片生成视频" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
