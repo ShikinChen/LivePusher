@@ -196,6 +196,7 @@ class ImgVideoRender(val context: Context) : EGLRender {
             GLES20.glDeleteTextures(1, ids, 0)
         }
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
+        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
         render.onDraw(fboTextureId)
     }
 }

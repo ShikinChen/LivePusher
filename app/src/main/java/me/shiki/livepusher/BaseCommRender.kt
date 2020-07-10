@@ -135,6 +135,7 @@ abstract class BaseCommRender : EGLRender {
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, vboId)
 
         //fbo
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, textureId)
         GLES20.glEnableVertexAttribArray(vPosition)
         GLES20.glVertexAttribPointer(

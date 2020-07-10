@@ -10,9 +10,11 @@ import com.yanzhenjie.permission.runtime.Permission
 import com.ywl5320.libmusic.WlMusic
 import com.ywl5320.listener.OnShowPcmDataListener
 import kotlinx.android.synthetic.main.activity_img_video.*
+import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
+
 //TODO 录制后比例
 class ImgVideoActivity : AppCompatActivity() {
 
@@ -135,9 +137,5 @@ class ImgVideoActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-    }
-
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
     }
 }

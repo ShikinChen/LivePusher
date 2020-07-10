@@ -31,6 +31,8 @@
             android:theme="@style/AppThemeFullScreen" />
 
         <activity android:name=".ImgVideoActivity" />
+
+        <activity android:name=".YuvActivity" />
     </application>
 
 </manifest>

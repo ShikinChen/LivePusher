@@ -24,5 +24,9 @@ class MainActivity : AppCompatActivity() {
         btn_img_video.setOnClickListener {
             startActivity(Intent(this, ImgVideoActivity::class.java))
         }
+
+        btn_yuv.setOnClickListener {
+            startActivity(Intent(this, YuvActivity::class.java))
+        }
     }
 }
