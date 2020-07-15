@@ -2,15 +2,16 @@ package me.shiki.livepusher
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.yanzhenjie.permission.Action
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.activity_camera.*
 import kotlinx.android.synthetic.main.activity_main.*
+import me.shiki.livepusher.push.PushVideo
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,6 +28,10 @@ class MainActivity : AppCompatActivity() {
 
         btn_yuv.setOnClickListener {
             startActivity(Intent(this, YuvActivity::class.java))
+        }
+
+        btn_live.setOnClickListener {
+            startActivity(Intent(this, LivePushActivity::class.java))
         }
     }
 }

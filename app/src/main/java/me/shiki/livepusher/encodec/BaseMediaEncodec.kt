@@ -59,28 +59,34 @@ open class BaseMediaEncodec(context: Context) {
     var audioExit = false
     var videoExit = false
 
+    var onSpsAndPpsInfo: ((sps: ByteArray, pps: ByteArray) -> Unit)? = null
+
+    var onVideoInfo: ((data: ByteArray, isKeyFrame: Boolean) -> Unit)? = null
+
     @JvmOverloads
     fun initEncodec(
-        eglContext: EGLContext?, savePath: String, width: Int, height: Int, sampleRate: Int,
-        channelCount: Int
+        eglContext: EGLContext?, width: Int, height: Int, sampleRate: Int = 44100,
+        channelCount: Int = 2, savePath: String? = null
     ) {
         this.width = width
         this.height = height
         this.eglContext = eglContext
         this.sampleRate = sampleRate
-        initMediaEncodec(savePath, width, height, sampleRate, channelCount)
+        initMediaEncodec(width, height, sampleRate, channelCount, savePath)
     }
 
     @JvmOverloads
     private fun initMediaEncodec(
-        savePath: String,
         width: Int,
         height: Int,
         sampleRate: Int,
-        channelCount: Int
+        channelCount: Int,
+        savePath: String? = null
     ) {
         try {
-            mediaMuxer = MediaMuxer(savePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            if (!savePath.isNullOrEmpty()) {
+                mediaMuxer = MediaMuxer(savePath, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4)
+            }
             initVideoEncodec(MediaFormat.MIMETYPE_VIDEO_AVC, width, height)
             initAudioEncodec(MediaFormat.MIMETYPE_AUDIO_AAC, sampleRate, channelCount)
         } catch (e: IOException) {

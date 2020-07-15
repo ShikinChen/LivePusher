@@ -16,11 +16,16 @@ set(PATH_TO_CPP ${CMAKE_SOURCE_DIR}/src/main/cpp)
 file(GLOB PATH_TO_RTMP_C_FILE
         ${PATH_TO_CPP}/librtmp/*.c)
 
+
+file(GLOB PATH_TO_CPP_FILE
+        ${PATH_TO_CPP}/*.cpp)
+
 add_library(
-        native-lib
+        push-lib
 
         SHARED
 
+        ${PATH_TO_CPP_FILE}
         ${PATH_TO_RTMP_C_FILE}
 )
 
@@ -42,7 +47,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        native-lib
+        push-lib
 
         # Links the target library to the log library
         # included in the NDK.

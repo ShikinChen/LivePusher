@@ -56,11 +56,11 @@ class ImgVideoActivity : AppCompatActivity() {
                 mediaEncodec?.encodecRender?.bitmap = null
                 mediaEncodec?.initEncodec(
                     ivv.getEglContext(),
-                    "${Environment.getExternalStorageDirectory().absolutePath}/test_img.mp4",
                     width,
                     height,
                     samplerate,
-                    channels
+                    channels,
+                    "${Environment.getExternalStorageDirectory().absolutePath}/test_img.mp4"
                 )
                 mediaEncodec?.onMediaTime = {
                     // Log.d(this::javaClass.name, "时间:${it}")

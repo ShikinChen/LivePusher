@@ -54,11 +54,12 @@ class VideoActivity : AppCompatActivity() {
                 mediaEncodec = MediaEncodec(this@VideoActivity, cv.textureId)
                 mediaEncodec?.initEncodec(
                     cv.getEglContext(),
-                    "${Environment.getExternalStorageDirectory().absolutePath}/test.mp4",
+
                     720,
                     1280,
                     samplerate,
-                    channels
+                    channels,
+                    "${Environment.getExternalStorageDirectory().absolutePath}/test.mp4"
                 )
                 mediaEncodec?.onMediaTime = {
                     // Log.d(this::javaClass.name, "时间:${it}")

@@ -4,7 +4,9 @@ import android.media.MediaCodec
 import android.media.MediaFormat
 import android.media.MediaMuxer
 import android.util.Log
+import me.shiki.livepusher.ext.byteToHex
 import java.lang.ref.WeakReference
+import java.nio.ByteBuffer
 
 class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<BaseMediaEncodec>?) : Thread() {
 
@@ -14,6 +16,9 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
     var videoTrackIndex = -1
         private set
     private var pts: Long = 0
+    private var sps: ByteArray? = null
+    private var pps: ByteArray? = null
+    private var isKeyFrame: Boolean = false
 
     override fun run() {
         super.run()
@@ -26,6 +31,7 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
         videoEncodec?.start()
         while (!isExit) {
             if (videoBufferInfo != null) {
+                isKeyFrame = false
                 var outputBufferIndex = videoEncodec?.dequeueOutputBuffer(videoBufferInfo, 0) ?: -1
 
                 if (outputBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -34,6 +40,18 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
                         if (mediaEncoderWeakReference?.get()?.audioEncodecThread?.audioTrackIndex != -1) {
                             mediaMuxer?.start()
                             mediaEncoderWeakReference?.get()?.encodecStart = true
+                        }
+                        if (mediaMuxer == null) {
+                            mediaEncoderWeakReference?.get()?.encodecStart = true
+                            val spsb: ByteBuffer = videoEncodec.outputFormat.getByteBuffer("csd-0")
+                            sps = ByteArray(spsb.remaining())
+                            spsb.get(sps, 0, sps!!.size)
+
+                            val ppsb: ByteBuffer = videoEncodec.outputFormat.getByteBuffer("csd-1")
+                            pps = ByteArray(ppsb.remaining())
+                            ppsb.get(pps, 0, pps!!.size)
+                            // Log.d(this::javaClass.name, "sps:${sps?.byteToHex()}")
+                            // Log.d(this::javaClass.name, "pps:${pps?.byteToHex()}")
                         }
                     }
                 } else {
@@ -49,8 +67,25 @@ class VideoEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
                             outputBuffer?.let {
                                 it.position(videoBufferInfo.offset)
                                 it.limit(videoBufferInfo.offset + videoBufferInfo.size)
-                                //写入文件
+                                //保存写入文件
                                 mediaMuxer?.writeSampleData(videoTrackIndex, it, videoBufferInfo)
+
+                                //直播推流
+                                if (mediaMuxer == null) {
+                                    val data = ByteArray(it.remaining())
+                                    outputBuffer.get(data, 0, data.size)
+                                    if (videoBufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
+                                        isKeyFrame = true
+                                        if (sps != null && pps != null) {
+                                            mediaEncoderWeakReference?.get()?.onSpsAndPpsInfo?.invoke(
+                                                sps!!, pps!!
+                                            )
+                                        }
+                                    }
+                                    mediaEncoderWeakReference?.get()?.onVideoInfo?.invoke(
+                                        data, isKeyFrame
+                                    )
+                                }
                             }
                             mediaEncoderWeakReference?.get()?.onMediaTime?.invoke(
                                 videoBufferInfo.presentationTimeUs / 1000000
