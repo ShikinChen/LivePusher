@@ -52,6 +52,15 @@ class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
                                 it.limit(audioBufferInfo.offset + audioBufferInfo.size)
                                 //写入文件
                                 mediaMuxer?.writeSampleData(audioTrackIndex, it, audioBufferInfo)
+
+                                //直播推流
+                                if (mediaMuxer == null) {
+                                    val data = ByteArray(it.remaining())
+                                    outputBuffer.get(data, 0, data.size)
+                                    mediaEncoderWeakReference?.get()?.onAudioInfo?.invoke(
+                                        data
+                                    )
+                                }
                             }
                         }
                         audioEncodec?.releaseOutputBuffer(outputBufferIndex, false)
@@ -66,7 +75,7 @@ class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
         if (mediaEncoderWeakReference?.get()?.videoExit != false) {
             mediaMuxer?.stop()
             mediaMuxer?.release()
-            Log.d(this::javaClass.name,"audioExit")
+            Log.d(this::javaClass.name, "audioExit")
         }
     }
 

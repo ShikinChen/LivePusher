@@ -68,7 +68,7 @@ void *callBackPush(void *data) {
 
 void RtmpPush::init() {
     this->callJava->onConnecting(Main);
-    pthread_create(&initThread, NULL, callBackPush, this);
+    pthread_create(&pushThread, NULL, callBackPush, this);
 }
 
 void RtmpPush::pushSpsAndPps(char *sps, int spsLen, char *pps, int ppsLen) {
@@ -174,4 +174,36 @@ void RtmpPush::pushVideoData(char *data, int dataLen, bool isKeyFrame) {
     packet->m_nInfoField2 = rtmp->m_stream_id;
 
     queue->putRtmpPacket(packet);
+}
+
+void RtmpPush::pushAudioData(char *data, int dataLen) {
+    int bodySize = dataLen + 2;
+
+    RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));
+    RTMPPacket_Alloc(packet, bodySize);
+    RTMPPacket_Reset(packet);
+
+    char *body = packet->m_body;
+
+    body[0] = 0xAF;
+    body[1] = 0x01;
+
+    memcpy(&body[2], data, dataLen);
+
+    packet->m_packetType = RTMP_PACKET_TYPE_AUDIO;
+    packet->m_nBodySize = bodySize;
+    packet->m_nTimeStamp = RTMP_GetTime() - startTime;
+    packet->m_hasAbsTimestamp = 0;
+
+    packet->m_nChannel = 0x04;
+    packet->m_headerType = RTMP_PACKET_SIZE_LARGE;
+    packet->m_nInfoField2 = rtmp->m_stream_id;
+
+    queue->putRtmpPacket(packet);
+}
+
+void RtmpPush::pushStop() {
+    startPushing = false;
+    queue->notifyQueue();
+    pthread_join(pushThread, NULL);
 }

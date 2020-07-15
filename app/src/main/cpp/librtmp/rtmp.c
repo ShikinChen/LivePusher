@@ -585,8 +585,8 @@ static struct urlopt {
   	"Number of days to use cached SWF hash" },
   { AVC("start"),     OFF(Link.seekTime),      OPT_INT, 0,
   	"Stream start position in milliseconds" },
-  { AVC("stop"),      OFF(Link.stopTime),      OPT_INT, 0,
-  	"Stream stop position in milliseconds" },
+  { AVC("pushStop"),      OFF(Link.stopTime),      OPT_INT, 0,
+  	"Stream pushStop position in milliseconds" },
   { AVC("buffer"),    OFF(m_nBufferMS),        OPT_INT, 0,
   	"Buffer time in milliseconds" },
   { AVC("timeout"),   OFF(Link.timeout),       OPT_INT, 0,
@@ -4783,7 +4783,7 @@ Read_1_Packet(RTMP *r, char *buf, unsigned int buflen)
 		}
 	      else
 		{
-		  /* stop ignoring packets */
+		  /* pushStop ignoring packets */
 		  r->m_read.flags |= RTMP_READ_NO_IGNORE;
 		}
 	    }

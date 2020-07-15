@@ -34,6 +34,14 @@ class PushVideo {
         pushVideoData(data, data.size, isKeyFrame)
     }
 
+    fun pushAudioData(data: ByteArray) {
+        pushAudioData(data, data.size)
+    }
+
+    fun stop() {
+        pushStop()
+    }
+
     private fun onConnecting() {
         onConnecting?.invoke()
     }
@@ -51,4 +59,8 @@ class PushVideo {
     private external fun pushSpsAndPps(sps: ByteArray, spsLen: Int, pps: ByteArray, ppsLen: Int)
 
     private external fun pushVideoData(data: ByteArray, dataLen: Int, isKeyFrame: Boolean)
+
+    private external fun pushAudioData(data: ByteArray, dataLen: Int)
+
+    private external fun pushStop()
 }

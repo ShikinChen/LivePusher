@@ -21,7 +21,7 @@ public:
 
     PushQueue *queue = NULL;
 
-    pthread_t initThread;
+    pthread_t pushThread;
 
     CallJava *callJava;
 
@@ -38,6 +38,10 @@ public:
     void pushSpsAndPps(char *sps, int spsLen, char *pps, int ppsLen);
 
     void pushVideoData(char *data, int dataLen, bool isKeyFrame);
+
+    void pushAudioData(char *data, int dataLen);
+
+    void pushStop();
 };
 
 

@@ -4,9 +4,11 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.yanzhenjie.permission.AndPermission
 import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.activity_live_push.*
+import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
 import me.shiki.livepusher.ext.getScreenHeight
 import me.shiki.livepusher.ext.getScreenWidth
@@ -25,7 +27,7 @@ class LivePushActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         AndPermission.with(this)
             .runtime()
-            .permission(Permission.CAMERA)
+            .permission(Permission.CAMERA, Permission.RECORD_AUDIO)
             .onGranted {
 
             }
@@ -42,8 +44,8 @@ class LivePushActivity : AppCompatActivity() {
             pushEncodec = MediaEncodec(this, cv.textureId)
             pushEncodec?.initEncodec(
                 cv.getEglContext(),
-                resources.getScreenWidth() / 2,
-                resources.getScreenHeight() / 2
+                720 / 2,
+                1280 / 2
             )
             pushEncodec?.onSpsAndPpsInfo = { sps, pps ->
                 pushVideo.pushSpsAndPps(sps, pps)
@@ -51,10 +53,14 @@ class LivePushActivity : AppCompatActivity() {
             pushEncodec?.onVideoInfo = { data, isKeyFrame ->
                 pushVideo.pushVideoData(data, isKeyFrame)
             }
+            pushEncodec?.onAudioInfo = { data ->
+                pushVideo.pushAudioData(data)
+            }
             pushEncodec?.startRecord()
         }
         pushVideo.onConnectFail = {
             Log.d(this::javaClass.name, "连接失败:${it}")
+            stop()
         }
         btn_start.setOnClickListener {
             if (!start) {
@@ -62,18 +68,27 @@ class LivePushActivity : AppCompatActivity() {
                 btn_start.text = "停止"
                 pushVideo.initLivePush("rtmp://192.168.121.102:1935/myapp/live")
             } else {
-                btn_start.text = "开始"
-                pushEncodec?.stopRecord()
-                pushEncodec = null
+                stop()
             }
 
         }
+    }
+
+    private fun stop() {
+        start = false
+        lifecycleScope.launch {
+            btn_start.text = "开始"
+        }
+        pushVideo.stop()
+        pushEncodec?.stopRecord()
+        pushEncodec = null
     }
 
     override fun onDestroy() {
         super.onDestroy()
         cv.onDestroy()
         pushEncodec?.stopRecord()
+        pushVideo.stop()
         pushEncodec = null
     }
 
