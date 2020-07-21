@@ -54,6 +54,7 @@ class AudioEncodecThread(private var mediaEncoderWeakReference: WeakReference<Ba
                                 mediaMuxer?.writeSampleData(audioTrackIndex, it, audioBufferInfo)
 
                                 //直播推流
+                                //TODO 去除杂音
                                 if (mediaMuxer == null) {
                                     val data = ByteArray(it.remaining())
                                     outputBuffer.get(data, 0, data.size)

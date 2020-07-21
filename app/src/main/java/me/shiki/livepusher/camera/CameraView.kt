@@ -1,6 +1,7 @@
 package me.shiki.livepusher.camera
 
 import android.content.Context
+import android.graphics.SurfaceTexture
 import android.hardware.camera2.CameraCharacteristics
 import android.util.AttributeSet
 import android.util.Log
@@ -8,6 +9,7 @@ import android.util.Size
 import android.view.Surface
 import me.shiki.livepusher.egl.EGLSurfaceView
 import me.shiki.livepusher.ext.getRotation
+import javax.microedition.khronos.egl.EGLContext
 
 //TODO 优化切换摄像头画面滞留问题
 class CameraView @JvmOverloads constructor(
@@ -27,11 +29,15 @@ class CameraView @JvmOverloads constructor(
     var textureId = -1
         private set
 
+    var onSurfaceCreateListener: ((eglContext: EGLContext?, surfaceTexture: SurfaceTexture?, textureId: Int) -> Unit)? =
+        null
+
     init {
         render = cameraRender
-        cameraRender.onSurfaceCreateListener = { surfaceTexture, fboTextureId ->
+        cameraRender.onSurfaceCreateListener = { surfaceTexture, textureId ->
             camera.initCamera(surfaceTexture, cameraId)
-            textureId = fboTextureId
+            this.textureId = textureId
+            onSurfaceCreateListener?.invoke(getEglContext(), surfaceTexture, textureId)
         }
         camera.onStartPreviewListener = {
             prewviewAngle()

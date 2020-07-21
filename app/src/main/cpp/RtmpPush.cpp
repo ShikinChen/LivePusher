@@ -177,6 +177,9 @@ void RtmpPush::pushVideoData(char *data, int dataLen, bool isKeyFrame) {
 }
 
 void RtmpPush::pushAudioData(char *data, int dataLen) {
+    if (dataLen <= 0) {
+        return;
+    }
     int bodySize = dataLen + 2;
 
     RTMPPacket *packet = static_cast<RTMPPacket *>(malloc(sizeof(RTMPPacket)));

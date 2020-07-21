@@ -72,7 +72,7 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     private var program = 0
     private var vPosition = 0
     private var fPosition = 0
-
+    private var sampler = 0
     private var uMatrix = 0
 
     private var vboId = 0
@@ -107,7 +107,7 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         program = ShaderUtil.createProgram(vertexSource, fragmentSource)
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
-
+        sampler = GLES20.glGetUniformLocation(program, "sTexture")
         uMatrix = GLES20.glGetUniformLocation(program, "u_Matrix")
 
         //vbo
@@ -137,6 +137,9 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         fboTextureId = textureIds[0]
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, fboTextureId)
+
+        // GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        // GLES20.glUniform1i(sampler, 0)
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT)

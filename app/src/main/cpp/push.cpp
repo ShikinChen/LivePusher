@@ -3,22 +3,36 @@
 #include "AndroidLog.h"
 #include "RtmpPush.h"
 #include "CallJava.h"
+#include "OpenSLUtil.h"
 
 RtmpPush *rtmpPush = NULL;
 JavaVM *javaVm = NULL;
 CallJava *callJava = NULL;
 bool isExit = true;
+OpenSLUtil *openSLUtil = NULL;
+
+void pushAudioData(char *data, int dataLen) {
+    if (rtmpPush != NULL && !isExit && data != NULL) {
+        rtmpPush->pushAudioData(reinterpret_cast<char *>(data), dataLen);
+    }
+}
 
 extern "C"
 JNIEXPORT void JNICALL
 Java_me_shiki_livepusher_push_PushVideo_initPush(JNIEnv *env, jobject thiz, jstring push_url) {
     const char *pushUrl = env->GetStringUTFChars(push_url, 0);
-    if (callJava == NULL) {
-        callJava = new CallJava(javaVm, env, &thiz);
+    if (callJava != NULL) {
+        delete (callJava);
+        callJava = NULL;
     }
+
+    callJava = new CallJava(javaVm, env, &thiz);
     if (rtmpPush == NULL) {
         isExit = false;
         rtmpPush = new RtmpPush(pushUrl, callJava);
+//        openSLUtil = new OpenSLUtil();
+//        openSLUtil->pushAudioData = pushAudioData;
+//        openSLUtil->start();
         rtmpPush->init();
     }
     env->ReleaseStringUTFChars(push_url, pushUrl);
@@ -75,9 +89,12 @@ Java_me_shiki_livepusher_push_PushVideo_pushStop(JNIEnv *env, jobject thiz) {
     isExit = true;
     if (rtmpPush != NULL) {
         rtmpPush->pushStop();
+//        openSLUtil->finish = true;
         delete (rtmpPush);
-        delete (callJava);
+//        delete (callJava);
+//        delete (openSLUtil);
         rtmpPush = NULL;
-        callJava = NULL;
+//        callJava = NULL;
+        openSLUtil = NULL;
     }
 }

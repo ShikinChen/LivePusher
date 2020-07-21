@@ -27,8 +27,9 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         holder.addCallback(this)
     }
 
+    @JvmOverloads
     fun setSurfaceAndEglContext(
-        surface: Surface?,
+        surface: Surface? = null,
         eglContext: EGLContext?
     ) {
         this.surface = surface

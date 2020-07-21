@@ -105,7 +105,7 @@ open class BaseMediaEncodec(context: Context) {
     private fun initPcmRecord() {
         audioRecordUitl = AudioRecordUitl(sampleRate)
         audioRecordUitl?.onRecordLisener = { audioData, readSize ->
-            putPCMData(audioData, readSize)
+            // putPCMData(audioData, readSize)
         }
     }
 
