@@ -3,6 +3,7 @@ package me.shiki.livepusher
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Environment
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.yanzhenjie.permission.AndPermission
@@ -14,6 +15,7 @@ import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
+import java.io.File
 
 //TODO 录制后比例
 class ImgVideoActivity : AppCompatActivity() {
@@ -81,7 +83,12 @@ class ImgVideoActivity : AppCompatActivity() {
                 .permission(Permission.Group.STORAGE)
                 .onGranted {
                     if (mediaEncodec == null) {
-                        music.source = Environment.getExternalStorageDirectory().absolutePath + "/test.mp3"
+                        val file = File(Environment.getExternalStorageDirectory().absolutePath + "/test.mp3")
+                        if (!file.exists()) {
+                            Toast.makeText(this, "背景音乐文件不存在", Toast.LENGTH_LONG).show()
+                            return@onGranted
+                        }
+                        music.source = file.absolutePath
                         music.prePared()
                         btn_start.text = "转换中"
                     } else {

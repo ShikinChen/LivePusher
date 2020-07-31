@@ -12,14 +12,17 @@ import com.yanzhenjie.permission.runtime.Permission
 import kotlinx.android.synthetic.main.activity_live_push.*
 import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
-import me.shiki.livepusher.filter.model.BaseFilter
-import me.shiki.livepusher.filter.model.GrayFilter
+import me.shiki.livepusher.filter.FilterRenderType
+import me.shiki.livepusher.filter.model.Filter
 import me.shiki.livepusher.push.PushVideo
 
 class LivePushActivity : AppCompatActivity() {
 
-    private val filterList: Array<BaseFilter> by lazy {
-        arrayOf<BaseFilter>(GrayFilter())
+    private val filterList: Array<Filter> by lazy {
+        arrayOf(
+            Filter(FilterRenderType.GRAY),
+            Filter(FilterRenderType.EXPOSURE)
+        )
     }
 
     private val pushVideo: PushVideo by lazy {
@@ -54,7 +57,7 @@ class LivePushActivity : AppCompatActivity() {
             pushEncodec = MediaEncodec(this, cv.textureId)
             pushEncodec?.initEncodec(
                 cv.getEglContext(),
-                720 ,
+                720,
                 1280
             )
             pushEncodec?.onSpsAndPpsInfo = { sps, pps ->
@@ -86,11 +89,14 @@ class LivePushActivity : AppCompatActivity() {
 
     private fun initRecyclerView() {
         rv_filter.layoutManager = LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
-        rv_filter.adapter = FilterAdapter(this, filterList)
+        rv_filter.adapter = FilterAdapter(this, filterList).apply {
+            onItemClickListener = { _, filter ->
+                cv.setCameraFboRender(filter.previewRender)
+            }
+        }
         cv.onSurfaceCreateListener = { eglContext, _, textureId ->
             filterList.forEach {
-                it.textureId = textureId
-                it.eglContext = eglContext
+                it.initRender(textureId, eglContext)
             }
             lifecycleScope.launch {
                 rv_filter.adapter?.notifyDataSetChanged()

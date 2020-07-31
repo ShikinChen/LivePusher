@@ -6,7 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import me.shiki.livepusher.filter.FilterSurfaceView
-import me.shiki.livepusher.filter.model.BaseFilter
+import me.shiki.livepusher.filter.model.Filter
 
 /**
  * FilterAdapter
@@ -15,10 +15,10 @@ import me.shiki.livepusher.filter.model.BaseFilter
  * @date 2020/7/21
  *
  */
-class FilterAdapter(val context: Context, private val list: Array<BaseFilter>) :
+class FilterAdapter(val context: Context, private val list: Array<Filter>) :
     RecyclerView.Adapter<FilterAdapter.FilterViewHolder>() {
 
-    var onItemClickListener: ((position: Int, filter: BaseFilter) -> Unit)? = null
+    var onItemClickListener: ((position: Int, filter: Filter) -> Unit)? = null
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): FilterViewHolder {
         val view: View =
@@ -32,7 +32,8 @@ class FilterAdapter(val context: Context, private val list: Array<BaseFilter>) :
 
     override fun onBindViewHolder(holder: FilterViewHolder, position: Int) {
         val data = list[position]
-        holder.fsv.setTextureIdAndEglcontext(data.textureId, data.eglContext)
+        holder.fsv.isAutoEglDestroyed = false
+        holder.fsv.setTextureIdAndEglcontext(data.render, data.eglContext)
         holder.itemView.setOnClickListener {
             onItemClickListener?.invoke(position, list[position])
         }

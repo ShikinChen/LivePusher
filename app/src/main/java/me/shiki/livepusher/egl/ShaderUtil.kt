@@ -53,6 +53,16 @@ class ShaderUtil {
                 GLES20.glLinkProgram(program)
             }
 
+            if (program == 0) {
+                val linkStatus = IntArray(1)
+                GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0)
+                if (linkStatus[0] != GLES20.GL_TRUE) {
+                    val error = GLES20.glGetProgramInfoLog(program)
+                    GLES20.glDeleteProgram(program)
+                    throw Exception(error)
+                }
+            }
+
             return program
         }
 

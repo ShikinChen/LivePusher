@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.util.Size
 import android.view.Surface
+import me.shiki.livepusher.BaseMarkRender
 import me.shiki.livepusher.egl.EGLSurfaceView
 import me.shiki.livepusher.ext.getRotation
 import javax.microedition.khronos.egl.EGLContext
@@ -101,5 +102,10 @@ class CameraView @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    fun setCameraFboRender(cameraFboRender: BaseMarkRender?) {
+        cameraRender.cameraFboRender = cameraFboRender
+        resetSurfaceCreated()
     }
 }

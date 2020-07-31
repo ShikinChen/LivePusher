@@ -1,9 +1,9 @@
 package me.shiki.livepusher.camera
 
 import android.opengl.GLES20
-import me.shiki.livepusher.BaseCommRender
+import me.shiki.livepusher.BaseMarkRender
 
-class CameraFboRender : BaseCommRender() {
+class CameraFboRender : BaseMarkRender() {
     private var sampler = 0
 
     override fun onSurfaceCreated() {

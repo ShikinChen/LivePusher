@@ -21,7 +21,12 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
     private var eglThread: EGLThread? = null
     var render: EGLRender? = null
 
+    //自动释放资源
+    var isAutoEglDestroyed = true
+
     var renderMode = RenderMode.CONTINUOUSLY
+
+    var onDrawListener: (() -> Unit)? = null
 
     init {
         holder.addCallback(this)
@@ -42,6 +47,10 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
 
     fun requestRender() {
         eglThread?.requestRender()
+    }
+    
+    fun resetSurfaceCreated() {
+        eglThread?.isCreate = true
     }
 
     override fun surfaceCreated(holder: SurfaceHolder?) {
@@ -65,7 +74,9 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
         eglThread?.onDestroy()
         eglThread = null
         surface = null
-        eglContext = null
+        if (isAutoEglDestroyed) {
+            eglContext = null
+        }
     }
 
     class EGLThread(private var eglSurfaceViewWeakReference: WeakReference<EGLSurfaceView>?) : Thread() {
@@ -135,6 +146,7 @@ abstract class EGLSurfaceView @JvmOverloads constructor(
 
         private fun onDraw() {
             with(eglSurfaceViewWeakReference?.get()?.render) {
+                eglSurfaceViewWeakReference?.get()?.onDrawListener?.invoke()
                 if (this != null && eglHelper != null) {
                     onDrawFrame()
                     if (!isStart) {

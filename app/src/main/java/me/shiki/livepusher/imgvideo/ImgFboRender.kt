@@ -1,9 +1,9 @@
 package me.shiki.livepusher.imgvideo
 
 import android.opengl.GLES20
-import me.shiki.livepusher.BaseCommRender
+import me.shiki.livepusher.BaseMarkRender
 
-class ImgFboRender : BaseCommRender() {
+class ImgFboRender : BaseMarkRender() {
     private var sampler = 0
 
     init {

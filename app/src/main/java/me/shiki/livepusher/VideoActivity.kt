@@ -5,6 +5,7 @@ import android.media.MediaFormat
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.yanzhenjie.permission.AndPermission
@@ -14,6 +15,7 @@ import com.ywl5320.listener.OnShowPcmDataListener
 import kotlinx.android.synthetic.main.activity_video.*
 import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
+import java.io.File
 
 class VideoActivity : AppCompatActivity() {
 
@@ -78,7 +80,12 @@ class VideoActivity : AppCompatActivity() {
                 .permission(Permission.Group.STORAGE)
                 .onGranted {
                     if (mediaEncodec == null) {
-                        music.source = Environment.getExternalStorageDirectory().absolutePath + "/test.mp3"
+                        val file = File(Environment.getExternalStorageDirectory().absolutePath + "/test.mp3")
+                        if (!file.exists()) {
+                            Toast.makeText(this, "背景音乐文件不存在", Toast.LENGTH_LONG).show()
+                            return@onGranted
+                        }
+                        music.source = file.absolutePath
                         music.prePared()
                         btn_record.text = "录制中"
                     } else {

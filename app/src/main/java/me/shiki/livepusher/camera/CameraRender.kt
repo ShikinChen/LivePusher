@@ -1,16 +1,14 @@
 package me.shiki.livepusher.camera
 
-import android.content.Context
 import android.content.res.Resources
-import android.graphics.Bitmap
 import android.graphics.SurfaceTexture
 import android.opengl.GLES11Ext
 import android.opengl.GLES20
 import android.opengl.Matrix
 import android.util.Log
+import me.shiki.livepusher.BaseMarkRender
 import me.shiki.livepusher.egl.EGLRender
 import me.shiki.livepusher.egl.ShaderUtil
-import me.shiki.livepusher.ext.dpToPx
 import me.shiki.livepusher.ext.getScreenHeight
 import me.shiki.livepusher.ext.getScreenWidth
 import java.nio.ByteBuffer
@@ -91,9 +89,8 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     private var width = 0
     private var height = 0
 
-    private val cameraFboRender: CameraFboRender by lazy {
-        CameraFboRender()
-    }
+    var cameraFboRender: BaseMarkRender? = null
+    var isOnSurfaceCreated = false
 
     init {
         vertexBuffer.position(0)
@@ -103,7 +100,16 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
     }
 
     override fun onSurfaceCreated() {
-        cameraFboRender.onSurfaceCreated()
+        if (cameraFboRender == null) {
+            cameraFboRender = CameraFboRender()
+        }
+
+        cameraFboRender?.onSurfaceCreated()
+
+        if (isOnSurfaceCreated) {
+            return
+        }
+
         program = ShaderUtil.createProgram(vertexSource, fragmentSource)
         vPosition = GLES20.glGetAttribLocation(program, "v_Position")
         fPosition = GLES20.glGetAttribLocation(program, "f_Position")
@@ -188,6 +194,8 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
         onSurfaceCreateListener?.invoke(surfaceTexture, fboTextureId)
 
         GLES20.glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, 0)
+
+        isOnSurfaceCreated = true
     }
 
     fun resetMatrix() {
@@ -236,8 +244,8 @@ class CameraRender : EGLRender, SurfaceTexture.OnFrameAvailableListener {
 
         GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0)
 
-        cameraFboRender.onSurfaceChanged(width, height)
-        cameraFboRender.onDraw(fboTextureId)
+        cameraFboRender?.onSurfaceChanged(width, height)
+        cameraFboRender?.onDraw(fboTextureId)
     }
 
     override fun onFrameAvailable(surfaceTexture: SurfaceTexture?) {

@@ -1,9 +1,9 @@
 package me.shiki.livepusher.yuv
 
 import android.opengl.GLES20
-import me.shiki.livepusher.BaseCommRender
+import me.shiki.livepusher.BaseMarkRender
 
-class YuvFboRender : BaseCommRender() {
+class YuvFboRender : BaseMarkRender() {
     private var sampler = 0
 
     init {
