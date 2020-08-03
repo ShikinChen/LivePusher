@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.ImageFormat
 import android.graphics.SurfaceTexture
-import android.hardware.Camera
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
@@ -27,7 +26,6 @@ import java.lang.ref.WeakReference
 class LivePusherCamera(private val context: Context) {
 
     private var surfaceTexture: SurfaceTexture? = null
-    private var currCameraId: Int = -1
 
     private var cameraDevice: CameraDevice? = null
     private var cameraManager: CameraManager? = null
@@ -63,16 +61,37 @@ class LivePusherCamera(private val context: Context) {
     private var width = 0
     private var height = 0
 
+    private var frontCameraId = "-1"
+    private var backCameraId = "-1"
+
+    private var cameraId = "-1"
+
+    private var curLensFacing = -1
+
     init {
         width = context.getScreenWidth()
         height = context.getScreenHeight()
     }
 
-    fun initCamera(surfaceTexture: SurfaceTexture?, cameraId: Int) {
+    fun initCamera(surfaceTexture: SurfaceTexture?) {
         try {
             this.surfaceTexture = surfaceTexture
             cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
-            cameraCharacteristics = cameraManager?.getCameraCharacteristics(cameraId.toString())
+
+            val cameraIdList = cameraManager!!.cameraIdList
+            cameraIdList.forEach {
+                val characteristics = cameraManager!!.getCameraCharacteristics(it)
+                val lensFacing = characteristics.get(CameraCharacteristics.LENS_FACING)
+                if (lensFacing == CameraCharacteristics.LENS_FACING_FRONT) {
+                    frontCameraId = it
+                } else if (lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                    backCameraId = it
+                }
+            }
+
+            curLensFacing = CameraCharacteristics.LENS_FACING_BACK
+            cameraId = backCameraId
+            cameraCharacteristics = cameraManager?.getCameraCharacteristics(cameraId)
             val map: StreamConfigurationMap? =
                 cameraCharacteristics?.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
             if (map != null) {
@@ -89,7 +108,7 @@ class LivePusherCamera(private val context: Context) {
     /**
      * 打开摄像头
      */
-    private fun openCamera(cameraId: Int) {
+    private fun openCamera(cameraId: String) {
         if (ActivityCompat.checkSelfPermission(
                 context,
                 Manifest.permission.CAMERA
@@ -97,9 +116,8 @@ class LivePusherCamera(private val context: Context) {
         ) {
             return
         }
-        currCameraId = cameraId
         startBackgroundThread()
-        cameraManager?.openCamera(cameraId.toString(), stateCallback, backgroundHandler)
+        cameraManager?.openCamera(cameraId, stateCallback, backgroundHandler)
     }
 
     private fun initPreview() {
@@ -154,9 +172,15 @@ class LivePusherCamera(private val context: Context) {
     }
 
     fun changeCamera(cameraId: Int) {
-        if (currCameraId != cameraId) {
+        if (curLensFacing != cameraId) {
+            curLensFacing = cameraId
+            this.cameraId = if (curLensFacing == CameraCharacteristics.LENS_FACING_BACK) {
+                backCameraId
+            } else {
+                frontCameraId
+            }
             releaseCamera()
-            openCamera(cameraId)
+            openCamera(this.cameraId)
         }
     }
 
@@ -206,6 +230,7 @@ class LivePusherCamera(private val context: Context) {
         }
 
         override fun onError(camera: CameraDevice, error: Int) {
+            Log.e(this::javaClass.name, "error: $error")
             cameraWeakReference.get()?.releaseCamera()
         }
     }

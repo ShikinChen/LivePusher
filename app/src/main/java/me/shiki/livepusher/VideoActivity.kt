@@ -1,5 +1,6 @@
 package me.shiki.livepusher
 
+import android.Manifest
 import android.content.res.Configuration
 import android.media.MediaFormat
 import android.os.Bundle
@@ -8,8 +9,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.yanzhenjie.permission.AndPermission
-import com.yanzhenjie.permission.runtime.Permission
+import com.permissionx.guolindev.PermissionX
 import com.ywl5320.libmusic.WlMusic
 import com.ywl5320.listener.OnShowPcmDataListener
 import kotlinx.android.synthetic.main.activity_video.*
@@ -28,16 +28,10 @@ class VideoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_video)
-        AndPermission.with(this)
-            .runtime()
-            .permission(Permission.Group.CAMERA)
-            .onGranted {
-
+        PermissionX.init(this)
+            .permissions(Manifest.permission.CAMERA)
+            .request { allGranted, grantedList, deniedList ->
             }
-            .onDenied {
-
-            }
-            .start()
 
         music.setCallBackPcmData(true)
         music.setOnPreparedListener {
@@ -53,7 +47,7 @@ class VideoActivity : AppCompatActivity() {
 
         music.setOnShowPcmDataListener(object : OnShowPcmDataListener {
             override fun onPcmInfo(samplerate: Int, bit: Int, channels: Int) {
-                mediaEncodec = MediaEncodec(this@VideoActivity, cv.textureId)
+                mediaEncodec = MediaEncodec(cv.textureId)
                 mediaEncodec?.initEncodec(
                     cv.getEglContext(),
 
@@ -75,30 +69,28 @@ class VideoActivity : AppCompatActivity() {
         })
 
         btn_record.setOnClickListener {
-            AndPermission.with(this)
-                .runtime()
-                .permission(Permission.Group.STORAGE)
-                .onGranted {
-                    if (mediaEncodec == null) {
-                        val file = File(Environment.getExternalStorageDirectory().absolutePath + "/test.mp3")
-                        if (!file.exists()) {
-                            Toast.makeText(this, "背景音乐文件不存在", Toast.LENGTH_LONG).show()
-                            return@onGranted
+
+            PermissionX.init(this)
+                .permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .request { allGranted, grantedList, deniedList ->
+                    if (allGranted) {
+                        if (mediaEncodec == null) {
+                            val file = File(Environment.getExternalStorageDirectory().absolutePath + "/test.mp3")
+                            if (!file.exists()) {
+                                Toast.makeText(this, "背景音乐文件不存在", Toast.LENGTH_LONG).show()
+                                return@request
+                            }
+                            music.source = file.absolutePath
+                            music.prePared()
+                            btn_record.text = "录制中"
+                        } else {
+                            mediaEncodec?.stopRecord()
+                            music.stop()
+                            mediaEncodec = null
+                            btn_record.text = "开始录制"
                         }
-                        music.source = file.absolutePath
-                        music.prePared()
-                        btn_record.text = "录制中"
-                    } else {
-                        mediaEncodec?.stopRecord()
-                        music.stop()
-                        mediaEncodec = null
-                        btn_record.text = "开始录制"
                     }
                 }
-                .onDenied {
-
-                }
-                .start()
         }
     }
 

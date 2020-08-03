@@ -1,7 +1,5 @@
 package me.shiki.livepusher.encodec
 
-import android.content.Context
-import android.media.AudioRecord
 import android.media.MediaCodec
 import android.media.MediaCodecInfo
 import android.media.MediaFormat
@@ -14,7 +12,7 @@ import java.io.IOException
 import java.lang.ref.WeakReference
 import javax.microedition.khronos.egl.EGLContext
 
-open class BaseMediaEncodec(context: Context) {
+open class BaseMediaEncodec {
 
     var surface: Surface? = null
         private set
@@ -105,7 +103,7 @@ open class BaseMediaEncodec(context: Context) {
     private fun initPcmRecord() {
         audioRecordUitl = AudioRecordUitl(sampleRate)
         audioRecordUitl?.onRecordLisener = { audioData, readSize ->
-            // putPCMData(audioData, readSize)
+            putPCMData(audioData, readSize)
         }
     }
 
@@ -138,7 +136,7 @@ open class BaseMediaEncodec(context: Context) {
             audioFromat = MediaFormat.createAudioFormat(mimeType, sampleRate, channelCount)
             audioFromat?.setInteger(MediaFormat.KEY_BIT_RATE, 96000)
             audioFromat?.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC)
-            audioFromat?.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096*10)
+            audioFromat?.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, 4096 * 10)
             //创建编码器
             audioEncodec = MediaCodec.createEncoderByType(mimeType)
             audioEncodec?.configure(audioFromat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
@@ -201,7 +199,7 @@ open class BaseMediaEncodec(context: Context) {
             videoEncodec = null
             audioEncodec = null
             eglMediaThread = null
-            audioRecordUitl=null
+            audioRecordUitl = null
         }
     }
 }

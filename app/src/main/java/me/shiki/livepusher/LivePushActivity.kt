@@ -1,5 +1,6 @@
 package me.shiki.livepusher
 
+import android.Manifest
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -7,8 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.yanzhenjie.permission.AndPermission
-import com.yanzhenjie.permission.runtime.Permission
+import com.permissionx.guolindev.PermissionX
 import kotlinx.android.synthetic.main.activity_live_push.*
 import kotlinx.coroutines.launch
 import me.shiki.livepusher.encodec.MediaEncodec
@@ -25,6 +25,8 @@ class LivePushActivity : AppCompatActivity() {
         )
     }
 
+    private var curFilter: Filter? = null
+
     private val pushVideo: PushVideo by lazy {
         PushVideo()
     }
@@ -38,23 +40,20 @@ class LivePushActivity : AppCompatActivity() {
 
         initRecyclerView()
 
-        AndPermission.with(this)
-            .runtime()
-            .permission(Permission.CAMERA, Permission.RECORD_AUDIO)
-            .onGranted {
-
+        PermissionX.init(this)
+            .permissions(Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO)
+            .request { allGranted, grantedList, deniedList ->
             }
-            .onDenied {
-
-            }
-            .start()
 
         pushVideo.onConnecting = {
             Log.d(this::javaClass.name, "连接中")
         }
         pushVideo.onConnectSuccess = {
             Log.d(this::javaClass.name, "连接成功")
-            pushEncodec = MediaEncodec(this, cv.textureId)
+            pushEncodec = MediaEncodec(cv.textureId)
+            if (curFilter != null && curFilter?.previewRender != null) {
+                pushEncodec?.encodecRender = curFilter?.previewRender!!
+            }
             pushEncodec?.initEncodec(
                 cv.getEglContext(),
                 720,
@@ -92,6 +91,8 @@ class LivePushActivity : AppCompatActivity() {
         rv_filter.adapter = FilterAdapter(this, filterList).apply {
             onItemClickListener = { _, filter ->
                 cv.setCameraFboRender(filter.previewRender)
+                curFilter = filter
+                pushEncodec?.encodecRender = filter.previewRender!!
             }
         }
         cv.onSurfaceCreateListener = { eglContext, _, textureId ->
@@ -120,6 +121,7 @@ class LivePushActivity : AppCompatActivity() {
         pushEncodec?.stopRecord()
         pushVideo.stop()
         pushEncodec = null
+        curFilter = null
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

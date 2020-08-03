@@ -24,7 +24,7 @@ class CameraView @JvmOverloads constructor(
         LivePusherCamera(context.applicationContext)
     }
 
-    var cameraId: Int = CameraCharacteristics.LENS_FACING_FRONT
+    var cameraId: Int = CameraCharacteristics.LENS_FACING_BACK
         private set
 
     var textureId = -1
@@ -36,7 +36,7 @@ class CameraView @JvmOverloads constructor(
     init {
         render = cameraRender
         cameraRender.onSurfaceCreateListener = { surfaceTexture, textureId ->
-            camera.initCamera(surfaceTexture, cameraId)
+            camera.initCamera(surfaceTexture)
             this.textureId = textureId
             onSurfaceCreateListener?.invoke(getEglContext(), surfaceTexture, textureId)
         }
@@ -71,7 +71,7 @@ class CameraView @JvmOverloads constructor(
         cameraRender.resetMatrix()
         when (angle) {
             Surface.ROTATION_0 -> {
-                if (cameraId == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraRender.setAngle(90f, 0f, 0f, 1f)
                     cameraRender.setAngle(180f, 1f, 0f, 0f)
                 } else {
@@ -79,7 +79,7 @@ class CameraView @JvmOverloads constructor(
                 }
             }
             Surface.ROTATION_90 -> {
-                if (cameraId == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraRender.setAngle(180f, 0f, 0f, 1f)
                     cameraRender.setAngle(180f, 0f, 1f, 0f)
                 } else {
@@ -87,7 +87,7 @@ class CameraView @JvmOverloads constructor(
                 }
             }
             Surface.ROTATION_180 -> {
-                if (cameraId == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraRender.setAngle(90f, 0f, 0f, 1f)
                     cameraRender.setAngle(180f, 0f, 1f, 0f)
                 } else {
@@ -95,7 +95,7 @@ class CameraView @JvmOverloads constructor(
                 }
             }
             Surface.ROTATION_270 -> {
-                if (cameraId == CameraCharacteristics.LENS_FACING_FRONT) {
+                if (cameraId == CameraCharacteristics.LENS_FACING_BACK) {
                     cameraRender.setAngle(180f, 0f, 1f, 0f)
                 } else {
                     cameraRender.setAngle(0f, 0f, 0f, 1f)
@@ -106,6 +106,7 @@ class CameraView @JvmOverloads constructor(
 
     fun setCameraFboRender(cameraFboRender: BaseMarkRender?) {
         cameraRender.cameraFboRender = cameraFboRender
+        //重置SurfaceCreated状态从而编译和链接新的program
         resetSurfaceCreated()
     }
 }

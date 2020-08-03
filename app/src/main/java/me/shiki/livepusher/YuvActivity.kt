@@ -1,13 +1,13 @@
 package me.shiki.livepusher
 
+import android.Manifest
 import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.yanzhenjie.permission.AndPermission
-import com.yanzhenjie.permission.runtime.Permission
+import com.permissionx.guolindev.PermissionX
 import kotlinx.android.synthetic.main.activity_img_video.btn_start
 import kotlinx.android.synthetic.main.activity_yuv.*
 import kotlinx.coroutines.CoroutineScope
@@ -30,20 +30,19 @@ class YuvActivity : AppCompatActivity() {
                 btn_start.text = "开始"
                 return@setOnClickListener
             }
-            AndPermission.with(this)
-                .runtime()
-                .permission(Permission.Group.STORAGE)
-                .onGranted {
-                    lifecycleScope.launch {
-                        btn_start.text = "播放中"
-                        play()
-                        btn_start.text = "开始"
+
+
+            PermissionX.init(this)
+                .permissions(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE)
+                .request { allGranted, grantedList, deniedList ->
+                    if (allGranted) {
+                        lifecycleScope.launch {
+                            btn_start.text = "播放中"
+                            play()
+                            btn_start.text = "开始"
+                        }
                     }
                 }
-                .onDenied {
-
-                }
-                .start()
         }
     }
 
